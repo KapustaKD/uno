@@ -10,12 +10,14 @@ let selectedCardIndex = null;
 // ─── Connect & Re-join ────────────────────────────────────────────────────────
 
 socket.on('connect', () => {
-  // Після підключення відновлюємо ім'я з sessionStorage (якщо є)
   const storedNames = sessionStorage.getItem('names');
-  const storedPlayers = sessionStorage.getItem('players');
   if (storedNames) playerNames = JSON.parse(storedNames);
-  if (storedPlayers) {
-    // myId буде встановлено з першого updateState
+
+  const oldId = sessionStorage.getItem('myId') || sessionStorage.getItem('socketId');
+  const roomCode = sessionStorage.getItem('roomCode');
+
+  if (oldId && roomCode) {
+    socket.emit('rejoinGame', { code: roomCode, oldId: oldId });
   }
 });
 
