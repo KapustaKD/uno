@@ -412,13 +412,56 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ── Перепідключення після зміни сторінки ──
+  socket.on('rejoinGame', ({ code, oldId }) => {
+    const room = rooms[code];
+    if (!room) return;
+
+    const state = room.state;
+    const pIndex = state.players.indexOf(oldId);
+
+    if (pIndex !== -1) {
+      // Замінюємо старий ID на новий
+      state.players[pIndex] = socket.id;
+
+      state.hands[socket.id] = state.hands[oldId];
+      delete state.hands[oldId];
+
+      room.names[socket.id] = room.names[oldId];
+      delete room.names[oldId];
+
+      if (state.currentTurn === oldId) state.currentTurn = socket.id;
+      if (state.waitingForColor === oldId) state.waitingForColor = socket.id;
+      if (state.winner === oldId) state.winner = socket.id;
+
+      if (state.unoSaid[oldId] !== undefined) {
+        state.unoSaid[socket.id] = state.unoSaid[oldId];
+        delete state.unoSaid[oldId];
+      }
+
+      socket.roomCode = code;
+      socket.join(code);
+
+      // Оновлюємо стан обом гравцям
+      broadcast(code, state);
+    }
+  });
+
   // ── Disconnect ──
   socket.on('disconnect', () => {
     const code = socket.roomCode;
     if (!code || !rooms[code]) return;
-    io.to(code).emit('opponentLeft');
-    delete rooms[code];
-    console.log('Room', code, 'closed');
+
+    // Даємо 8 секунд на завантаження сторінки game.html
+    setTimeout(() => {
+      const room = rooms[code];
+      // Якщо кімната ще існує і гравець так і не перепідключився (його старий ID все ще там)
+      if (room && room.state.players.includes(socket.id)) {
+        io.to(code).emit('opponentLeft');
+        delete rooms[code];
+        console.log('Room', code, 'closed due to disconnect');
+      }
+    }, 8000);
   });
 });
 
