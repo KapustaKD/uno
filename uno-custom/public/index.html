@@ -381,8 +381,8 @@ socket.on('roomCreated', ({ code }) => {
 });
 
 socket.on('gameStart', ({ names, players }) => {
-  // Зберігаємо інфо і переходимо на гру
   sessionStorage.setItem('myId', socket.id);
+  sessionStorage.setItem('roomCode', myRoomCode || document.getElementById('code-input').value.trim().toUpperCase());
   sessionStorage.setItem('names', JSON.stringify(names));
   sessionStorage.setItem('players', JSON.stringify(players));
   window.location.href = '/game.html';
