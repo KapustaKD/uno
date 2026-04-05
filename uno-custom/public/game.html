@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>УНО — Гра</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- OVERLAY: Вибір кольору -->
+<div id="color-picker" class="overlay hidden">
+  <div class="overlay-box">
+    <div class="overlay-title">Оберіть колір</div>
+    <div class="color-grid">
+      <button class="color-btn" style="background:var(--red)" data-color="red" onclick="chooseColor('red')">🔴</button>
+      <button class="color-btn" style="background:var(--blue)" data-color="blue" onclick="chooseColor('blue')">🔵</button>
+      <button class="color-btn" style="background:var(--green)" data-color="green" onclick="chooseColor('green')">🟢</button>
+      <button class="color-btn" style="background:var(--yellow)" data-color="yellow" onclick="chooseColor('yellow')">🟡</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: Нове правило -->
+<div id="rule-picker" class="overlay hidden">
+  <div class="overlay-box">
+    <div class="overlay-title">✍️ Введіть нове правило</div>
+    <div class="overlay-sub">Всі гравці зобов'язані його виконувати</div>
+    <textarea id="rule-input" placeholder="Наприклад: хто кидає синю карту — робить ковток..." maxlength="200"></textarea>
+    <div class="char-count"><span id="char-count">0</span>/200</div>
+    <div style="margin-top:12px; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--muted);">Тепер оберіть колір</div>
+    <div class="color-grid" style="margin-top:12px;">
+      <button class="color-btn" style="background:var(--red)" onclick="submitRule('red')">🔴</button>
+      <button class="color-btn" style="background:var(--blue)" onclick="submitRule('blue')">🔵</button>
+      <button class="color-btn" style="background:var(--green)" onclick="submitRule('green')">🟢</button>
+      <button class="color-btn" style="background:var(--yellow)" onclick="submitRule('yellow')">🟡</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: Чекаємо правило суперника -->
+<div id="waiting-rule" class="overlay hidden">
+  <div class="overlay-box">
+    <div class="overlay-title">⏳ Суперник придумує правило...</div>
+    <div class="waiting-anim" style="justify-content:center; margin-top:16px;">
+      <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- OVERLAY: Кінець гри -->
+<div id="game-over" class="overlay hidden">
+  <div class="overlay-box">
+    <div id="win-icon" style="font-size:72px; text-align:center;">🏆</div>
+    <div id="win-text" class="overlay-title" style="text-align:center;"></div>
+    <button class="btn btn-primary" onclick="window.location.href='/'">🔄 Нова гра</button>
+  </div>
+</div>
+
+<!-- OVERLAY: Суперник вийшов -->
+<div id="opponent-left" class="overlay hidden">
+  <div class="overlay-box">
+    <div style="font-size:64px; text-align:center;">😢</div>
+    <div class="overlay-title" style="text-align:center;">Суперник покинув гру</div>
+    <button class="btn btn-primary" onclick="window.location.href='/'">На головну</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- ═══════════════ ІГРОВИЙ СТІЛ ═══════════════ -->
+
+<div id="game-table">
+
+  <!-- ВЕРХ: Активне правило -->
+  <div id="rule-banner" class="rule-banner hidden">
+    <span class="rule-icon">📜</span>
+    <span id="rule-text"></span>
+  </div>
+
+  <!-- СУПЕРНИК -->
+  <div class="opponent-area">
+    <div class="player-info" id="opponent-info">
+      <div class="avatar" id="opponent-avatar">?</div>
+      <div class="player-details">
+        <div class="player-name" id="opponent-name">Суперник</div>
+        <div class="player-cards-count" id="opponent-count">0 карт</div>
+      </div>
+      <div class="turn-indicator" id="opponent-turn-indicator"></div>
+    </div>
+    <!-- Карти суперника рубашкою вгору -->
+    <div class="opponent-cards" id="opponent-cards-display"></div>
+  </div>
+
+  <!-- ЦЕНТР: Колода + Скидання -->
+  <div class="table-center">
+    <!-- Колода -->
+    <div class="deck-area" id="deck-btn" onclick="drawCard()">
+      <div class="card card-deck">
+        <div class="card-inner">
+          <div class="card-back-pattern"></div>
+        </div>
+      </div>
+      <div class="deck-count" id="deck-count">?</div>
+    </div>
+
+    <!-- Стрілка напрямку -->
+    <div class="direction-icon" id="direction-icon">↻</div>
+
+    <!-- Стопка скидання -->
+    <div class="discard-area">
+      <div class="card" id="discard-top">
+        <div class="card-inner">
+          <div class="card-value" id="discard-value"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- СТАТУС ХОДУ -->
+  <div class="turn-status" id="turn-status">Чекаємо...</div>
+
+  <!-- МОЯ РУКА -->
+  <div class="my-hand-container">
+    <div class="my-hand" id="my-hand"></div>
+  </div>
+
+  <!-- Нижня панель: УНО + Пас -->
+  <div class="bottom-bar">
+    <button class="btn-uno" id="uno-btn" onclick="sayUno()">УНО!</button>
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/game.js"></script>
+</body>
+</html>

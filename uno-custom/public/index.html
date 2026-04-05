@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>УНО — Свої правила</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #E63946;
+    --blue: #457B9D;
+    --green: #2DC653;
+    --yellow: #FFD60A;
+    --black: #1A1A2E;
+    --surface: #16213E;
+    --card-bg: #0F3460;
+    --text: #E8E8F0;
+    --muted: #8888AA;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--black);
+    color: var(--text);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Animated background blobs */
+  .blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    opacity: 0.15;
+    animation: float 8s ease-in-out infinite;
+    pointer-events: none;
+  }
+  .blob-1 { width: 300px; height: 300px; background: var(--red); top: -100px; left: -100px; animation-delay: 0s; }
+  .blob-2 { width: 250px; height: 250px; background: var(--blue); bottom: -80px; right: -80px; animation-delay: 2s; }
+  .blob-3 { width: 200px; height: 200px; background: var(--yellow); top: 40%; left: 50%; animation-delay: 4s; }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-30px) scale(1.1); }
+  }
+
+  .container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 420px;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+  }
+
+  /* Logo */
+  .logo {
+    text-align: center;
+  }
+  .logo-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 80px;
+    line-height: 0.9;
+    letter-spacing: 4px;
+    background: linear-gradient(135deg, var(--red) 0%, var(--yellow) 50%, var(--green) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 30px rgba(230,57,70,0.4));
+  }
+  .logo-sub {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* Card decoration */
+  .cards-preview {
+    display: flex;
+    gap: -8px;
+  }
+  .mini-card {
+    width: 40px;
+    height: 60px;
+    border-radius: 8px;
+    border: 2px solid rgba(255,255,255,0.1);
+    margin-left: -10px;
+    box-shadow: 2px 4px 12px rgba(0,0,0,0.5);
+    transform-origin: bottom center;
+  }
+  .mini-card:nth-child(1) { background: var(--red); transform: rotate(-15deg); }
+  .mini-card:nth-child(2) { background: var(--blue); transform: rotate(-5deg); }
+  .mini-card:nth-child(3) { background: var(--yellow); transform: rotate(5deg); }
+  .mini-card:nth-child(4) { background: var(--green); transform: rotate(15deg); }
+  .mini-card:first-child { margin-left: 0; }
+
+  /* Form panel */
+  .panel {
+    background: var(--surface);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    padding: 28px 24px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  input {
+    background: var(--card-bg);
+    border: 2px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    padding: 14px 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  input:focus { border-color: var(--yellow); }
+  input::placeholder { color: var(--muted); font-weight: 400; }
+
+  /* Buttons */
+  .btn {
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    padding: 16px;
+    width: 100%;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--red), #c1121f);
+    color: white;
+    box-shadow: 0 6px 24px rgba(230,57,70,0.4);
+  }
+  .btn-secondary {
+    background: linear-gradient(135deg, var(--blue), #1d3557);
+    color: white;
+    box-shadow: 0 6px 24px rgba(69,123,157,0.4);
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0) scale(0.97); }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+  }
+
+  /* Waiting lobby */
+  #lobby-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    width: 100%;
+  }
+  .room-code-display {
+    background: var(--surface);
+    border: 2px solid var(--yellow);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    width: 100%;
+  }
+  .room-code-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .room-code-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 56px;
+    letter-spacing: 8px;
+    color: var(--yellow);
+    line-height: 1;
+  }
+  .room-code-hint {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .waiting-anim {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse {
+    0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+    40% { opacity: 1; transform: scale(1.2); }
+  }
+
+  .copy-btn {
+    background: rgba(255,214,10,0.1);
+    border: 1px solid var(--yellow);
+    border-radius: 10px;
+    color: var(--yellow);
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 10px 20px;
+    margin-top: 12px;
+    transition: background 0.2s;
+  }
+  .copy-btn:active { background: rgba(255,214,10,0.2); }
+
+  .error-msg {
+    background: rgba(230,57,70,0.15);
+    border: 1px solid var(--red);
+    border-radius: 10px;
+    color: var(--red);
+    font-size: 14px;
+    font-weight: 700;
+    padding: 12px 16px;
+    text-align: center;
+    display: none;
+  }
+</style>
+</head>
+<body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+<div class="blob blob-3"></div>
+
+<div class="container">
+  <div class="logo">
+    <div class="logo-title">УНО</div>
+    <div class="logo-sub">Свої правила</div>
+  </div>
+
+  <div class="cards-preview">
+    <div class="mini-card"></div>
+    <div class="mini-card"></div>
+    <div class="mini-card"></div>
+    <div class="mini-card"></div>
+  </div>
+
+  <!-- Головний екран -->
+  <div id="main-screen" style="width:100%; display:flex; flex-direction:column; gap:16px;">
+    <div class="panel">
+      <div class="input-group">
+        <label>Твоє ім'я</label>
+        <input id="name-input" type="text" placeholder="Як тебе звати?" maxlength="20">
+      </div>
+    </div>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <button class="btn btn-primary" onclick="createRoom()">🃏 Створити кімнату</button>
+
+    <div class="divider">або</div>
+
+    <div class="panel">
+      <div class="input-group">
+        <label>Код кімнати</label>
+        <input id="code-input" type="text" placeholder="XXXXX" maxlength="5"
+          style="text-transform:uppercase; letter-spacing:4px; text-align:center; font-size:24px;">
+      </div>
+      <button class="btn btn-secondary" onclick="joinRoom()">🚀 Приєднатись</button>
+    </div>
+  </div>
+
+  <!-- Лобі очікування -->
+  <div id="lobby-screen">
+    <div class="room-code-display">
+      <div class="room-code-label">Код кімнати</div>
+      <div class="room-code-value" id="code-display">—</div>
+      <div class="room-code-hint">Надішли цей код другу</div>
+      <button class="copy-btn" onclick="copyCode()">📋 Скопіювати код</button>
+    </div>
+    <div style="text-align:center; color:var(--muted); font-size:14px; font-weight:700;">
+      Очікуємо другого гравця...
+    </div>
+    <div class="waiting-anim">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+let myRoomCode = '';
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+function getName() {
+  return document.getElementById('name-input').value.trim() || 'Гравець';
+}
+
+function createRoom() {
+  socket.emit('createRoom', { name: getName() });
+}
+
+function joinRoom() {
+  const code = document.getElementById('code-input').value.trim().toUpperCase();
+  if (!code) return showError('Введи код кімнати');
+  socket.emit('joinRoom', { code, name: getName() });
+}
+
+function copyCode() {
+  navigator.clipboard?.writeText(myRoomCode).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✅ Скопійовано!';
+    setTimeout(() => btn.textContent = '📋 Скопіювати код', 2000);
+  });
+}
+
+socket.on('roomCreated', ({ code }) => {
+  myRoomCode = code;
+  document.getElementById('main-screen').style.display = 'none';
+  const lobby = document.getElementById('lobby-screen');
+  lobby.style.display = 'flex';
+  document.getElementById('code-display').textContent = code;
+});
+
+socket.on('gameStart', ({ names, players }) => {
+  // Зберігаємо інфо і переходимо на гру
+  sessionStorage.setItem('myId', socket.id);
+  sessionStorage.setItem('names', JSON.stringify(names));
+  sessionStorage.setItem('players', JSON.stringify(players));
+  window.location.href = '/game.html';
+});
+
+socket.on('error', ({ msg }) => showError(msg));
+
+// Передаємо socket id через sessionStorage для game.html
+socket.on('connect', () => {
+  sessionStorage.setItem('socketId', socket.id);
+});
+</script>
+</body>
+</html>
