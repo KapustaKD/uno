@@ -74,7 +74,7 @@ function cardImagePath(card) {
   if (color === 'black') {
     if (v === 'wild') return `/cards/black/black_newcolor.webp`;
     if (v === 'wild+4') return `/cards/black/black_+4.webp`;
-    // Карта з новим правилом – очікуємо black_newrule.webp (або скажеш іншу назву)
+    // Карта з новим правилом – очікуємо black_newrule.png
     if (v === 'newrule') return `/cards/black/black_newrule.webp`;
   }
 
