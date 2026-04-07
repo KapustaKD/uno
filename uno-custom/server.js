@@ -54,7 +54,8 @@ function shuffle(arr) {
 
 // ─── Game Rooms ───────────────────────────────────────────────────────────────
 
-const rooms = {}; // roomCode -> gameState
+const rooms = {}; // roomCode -> { state, names, turnTimer }
+const TURN_DURATION_MS = 15000;
 
 function generateCode() {
   return Math.random().toString(36).substring(2, 7).toUpperCase();
@@ -79,7 +80,8 @@ function createGameState() {
     pendingDraw: 0,        // накопичений +2/+4
     unoSaid: {},           // socketId -> bool
     winner: null,
-    direction: 1           // 1 або -1 (reverse)
+    direction: 1,          // 1 або -1 (reverse)
+    turnDeadline: null     // timestamp коли закінчується поточний хід
   };
 }
 
@@ -152,7 +154,8 @@ function stateForPlayer(state, playerId) {
     myId: playerId,
     opponentId: opponent,
     unoSaid: state.unoSaid,
-    direction: state.direction
+    direction: state.direction,
+    turnDeadline: state.turnDeadline
   };
 }
 
@@ -162,6 +165,52 @@ function broadcast(roomCode, state) {
   for (const pid of state.players) {
     io.to(pid).emit('updateState', stateForPlayer(state, pid));
   }
+}
+
+function clearTurnTimer(roomCode) {
+  const room = rooms[roomCode];
+  if (!room || !room.turnTimer) return;
+  clearTimeout(room.turnTimer);
+  room.turnTimer = null;
+}
+
+function startTurnTimer(roomCode) {
+  const room = rooms[roomCode];
+  if (!room) return;
+  const state = room.state;
+  if (!state.currentTurn || state.winner) return;
+
+  clearTurnTimer(roomCode);
+
+  const now = Date.now();
+  state.turnDeadline = now + TURN_DURATION_MS;
+  const currentPlayer = state.currentTurn;
+
+  room.turnTimer = setTimeout(() => {
+    const r = rooms[roomCode];
+    if (!r) return;
+    const s = r.state;
+    if (s.winner) return;
+    if (s.currentTurn !== currentPlayer) return;
+    if (s.waitingForRule || s.waitingForColor) return;
+
+    const pid = s.currentTurn;
+
+    // Автоматичний добір карти при таймауті
+    if (s.pendingDraw > 0) {
+      drawCards(s, pid, s.pendingDraw);
+      s.pendingDraw = 0;
+      advanceTurn(s);
+      broadcast(roomCode, s);
+      startTurnTimer(roomCode);
+      return;
+    }
+
+    drawCards(s, pid, 1);
+    advanceTurn(s);
+    broadcast(roomCode, s);
+    startTurnTimer(roomCode);
+  }, TURN_DURATION_MS);
 }
 
 // ─── Socket.io ────────────────────────────────────────────────────────────────
@@ -175,7 +224,7 @@ io.on('connection', (socket) => {
     const state = createGameState();
     state.players.push(socket.id);
     state.hands[socket.id] = [];
-    rooms[code] = { state, names: { [socket.id]: name || 'Гравець 1' } };
+    rooms[code] = { state, names: { [socket.id]: name || 'Гравець 1' }, turnTimer: null };
     socket.join(code);
     socket.roomCode = code;
     socket.emit('roomCreated', { code });
@@ -205,6 +254,7 @@ io.on('connection', (socket) => {
     });
 
     broadcast(code, room.state);
+    startTurnTimer(code);
     console.log('Game started in room:', code);
   });
 
@@ -245,6 +295,7 @@ io.on('connection', (socket) => {
     }
     if (hand.length === 0) {
       state.winner = socket.id;
+      clearTurnTimer(code);
       broadcast(code, state);
       return;
     }
@@ -282,17 +333,20 @@ io.on('connection', (socket) => {
       state.direction *= -1;
       advanceTurn(state);
       broadcast(code, state);
+      startTurnTimer(code);
       return;
     }
 
     if (card.value === 'skip') {
       advanceTurn(state, true);
       broadcast(code, state);
+      startTurnTimer(code);
       return;
     }
 
     advanceTurn(state);
     broadcast(code, state);
+    startTurnTimer(code);
   });
 
   function applyPendingDraw(state, code) {
@@ -311,6 +365,7 @@ io.on('connection', (socket) => {
       advanceTurn(state);
     }
     broadcast(code, state);
+    startTurnTimer(code);
   }
 
   // ── Взяти карту з колоди ──
@@ -330,6 +385,7 @@ io.on('connection', (socket) => {
       state.pendingDraw = 0;
       advanceTurn(state);
       broadcast(code, state);
+      startTurnTimer(code);
       return;
     }
 
@@ -337,6 +393,7 @@ io.on('connection', (socket) => {
     // Якщо щойно взята карта підходить — можна одразу зіграти (фронт вирішить)
     advanceTurn(state);
     broadcast(code, state);
+    startTurnTimer(code);
   });
 
   // ── Обрати колір (після wild / wild+4 / newrule) ──
@@ -360,6 +417,7 @@ io.on('connection', (socket) => {
 
     advanceTurn(state);
     broadcast(code, state);
+    startTurnTimer(code);
   });
 
   // ── Встановити нове правило ──
@@ -380,6 +438,7 @@ io.on('connection', (socket) => {
 
     advanceTurn(state);
     broadcast(code, state);
+    startTurnTimer(code);
   });
 
   // ── Сказати УНО ──
@@ -458,6 +517,7 @@ io.on('connection', (socket) => {
       // Якщо кімната ще існує і гравець так і не перепідключився (його старий ID все ще там)
       if (room && room.state.players.includes(socket.id)) {
         io.to(code).emit('opponentLeft');
+        clearTurnTimer(code);
         delete rooms[code];
         console.log('Room', code, 'closed due to disconnect');
       }
