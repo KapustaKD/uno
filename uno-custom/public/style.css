@@ -247,33 +247,18 @@ textarea#rule-input:focus { border-color: var(--yellow); }
   min-height: 44px;
   align-items: center;
 }
-.card-back-small {
+.card-back-small-img {
   width: 28px;
   height: 44px;
   border-radius: 6px;
-  background: linear-gradient(135deg, #1a1a4e, #0a0a2e);
   border: 1px solid rgba(255,255,255,0.15);
   margin-left: -10px;
   box-shadow: 1px 2px 6px rgba(0,0,0,0.4);
   flex-shrink: 0;
-  position: relative;
-  overflow: hidden;
+  object-fit: cover;
+  background: #0a0a2e;
 }
-.card-back-small::after {
-  content: '';
-  position: absolute;
-  inset: 3px;
-  border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 3px,
-    rgba(255,255,255,0.03) 3px,
-    rgba(255,255,255,0.03) 6px
-  );
-}
-.card-back-small:first-child { margin-left: 0; }
+.card-back-small-img:first-child { margin-left: 0; }
 
 /* ─── Table Center ─── */
 
@@ -321,32 +306,18 @@ textarea#rule-input:focus { border-color: var(--yellow); }
   overflow: hidden;
 }
 
-/* Колоди (рубашка) */
-.card-deck .card-inner {
-  background: linear-gradient(135deg, #1a1a4e 0%, #0a0a2e 100%);
+/* Колоди (рубашка — зображення) */
+.card-deck .card-inner.card-inner--image {
+  background: transparent !important;
   border: 2px solid rgba(255,255,255,0.12);
+  overflow: hidden;
 }
-.card-back-pattern {
-  position: absolute;
-  inset: 6px;
-  border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 4px,
-    rgba(255,255,255,0.04) 4px,
-    rgba(255,255,255,0.04) 8px
-  );
-}
-.card-back-pattern::after {
-  content: '🎴';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 24px;
-  opacity: 0.4;
+.card-deck-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
 }
 
 .deck-area {
@@ -377,12 +348,37 @@ textarea#rule-input:focus { border-color: var(--yellow); }
   border: 2px solid rgba(255,255,255,0.2);
 }
 
-/* Card colors */
-.card[data-color="red"] .card-inner    { background: linear-gradient(135deg, #E63946, #c1121f); }
-.card[data-color="blue"] .card-inner   { background: linear-gradient(135deg, #457B9D, #1d3557); }
-.card[data-color="green"] .card-inner  { background: linear-gradient(135deg, #2DC653, #1a7a30); }
-.card[data-color="yellow"] .card-inner { background: linear-gradient(135deg, #FFD60A, #e5a100); }
-.card[data-color="black"] .card-inner  { background: linear-gradient(135deg, #2d2d4e, #1a1a2e); }
+/* Обличчя карт — <img> у .card-inner--image */
+.card-inner.card-inner--image {
+  background: transparent !important;
+  overflow: hidden;
+}
+.card-face-wrap {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.card-face-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.card-chosen-strip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 9px;
+  border-radius: 0 0 10px 10px;
+  pointer-events: none;
+}
+.card-chosen-strip.strip-red { background: #E63946; }
+.card-chosen-strip.strip-blue { background: #457B9D; }
+.card-chosen-strip.strip-green { background: #2DC653; }
+.card-chosen-strip.strip-yellow { background: #FFD60A; }
 
 /* Card value label */
 .card-value {
