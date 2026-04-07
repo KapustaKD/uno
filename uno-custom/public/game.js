@@ -64,6 +64,44 @@ socket.on('error', ({ msg }) => {
   showToast(`⚠️ ${msg}`, 2000);
 });
 
+// ─── Card images (SVG as data URL) ────────────────────────────────────────────
+
+function cardImagePath(card) {
+  const color = card.color;
+  const v = card.value;
+
+  // Чорні карти (wild)
+  if (color === 'black') {
+    if (v === 'wild') return `/cards/black/black_newcolor.webp`;
+    if (v === 'wild+4') return `/cards/black/black_+4.webp`;
+    // Карта з новим правилом – очікуємо black_newrule.webp (або скажеш іншу назву)
+    if (v === 'newrule') return `/cards/black/black_newrule.webp`;
+  }
+
+  // Кольорові карти
+  let fileValue = v;
+  if (v === 'reverse') fileValue = 'change'; // у тебе реверс називається *_change
+  // цифри, +2, skip – збігаються з твоєю схемою
+
+  return `/cards/${color}/${color}_${fileValue}.webp`;
+}
+
+function createCardFaceImg(card) {
+  const img = document.createElement('img');
+  img.className = 'card-face-img';
+  img.src = cardImagePath(card);
+  img.alt = '';
+  img.draggable = false;
+  return img;
+}
+
+function needsChosenColorStrip(card) {
+  if (!card.chosenColor) return false;
+  if (card.color !== 'black') return false;
+  const v = card.value;
+  return v === 'wild' || v === 'wild+4' || v === 'newrule';
+}
+
 // ─── Render ───────────────────────────────────────────────────────────────────
 
 function render(state) {
@@ -146,9 +184,12 @@ function renderOpponentCards(count) {
   container.innerHTML = '';
   const show = Math.min(count, 12);
   for (let i = 0; i < show; i++) {
-    const d = document.createElement('div');
-    d.className = 'card-back-small';
-    container.appendChild(d);
+    const img = document.createElement('img');
+    img.className = 'card-back-small-img';
+    img.src = '/cards/back.svg';
+    img.alt = '';
+    img.draggable = false;
+    container.appendChild(img);
   }
 }
 
@@ -160,28 +201,17 @@ function renderDiscardCard(card) {
 
   const inner = el.querySelector('.card-inner');
   inner.innerHTML = '';
+  inner.classList.add('card-inner--image');
 
-  // Oval decoration
-  const oval = document.createElement('div');
-  oval.className = 'card-oval';
-  inner.appendChild(oval);
-
-  const val = document.createElement('div');
-  val.className = 'card-value';
-  val.textContent = cardLabel(card.value);
-  if (cardLabel(card.value).length > 3) val.classList.add('small');
-  inner.appendChild(val);
-
-  // Corner labels
-  const tl = document.createElement('div');
-  tl.className = 'card-corner tl';
-  tl.textContent = cardLabel(card.value);
-  inner.appendChild(tl);
-
-  const br = document.createElement('div');
-  br.className = 'card-corner br';
-  br.textContent = cardLabel(card.value);
-  inner.appendChild(br);
+  const wrap = document.createElement('div');
+  wrap.className = 'card-face-wrap';
+  wrap.appendChild(createCardFaceImg(card));
+  if (needsChosenColorStrip(card)) {
+    const strip = document.createElement('div');
+    strip.className = `card-chosen-strip strip-${card.chosenColor}`;
+    wrap.appendChild(strip);
+  }
+  inner.appendChild(wrap);
 }
 
 function renderHand(state) {
@@ -201,27 +231,12 @@ function renderHand(state) {
     el.dataset.index = i;
 
     const inner = document.createElement('div');
-    inner.className = 'card-inner';
+    inner.className = 'card-inner card-inner--image';
 
-    const oval = document.createElement('div');
-    oval.className = 'card-oval';
-    inner.appendChild(oval);
-
-    const val = document.createElement('div');
-    val.className = 'card-value';
-    val.textContent = cardLabel(card.value);
-    if (cardLabel(card.value).length > 3) val.classList.add('small');
-    inner.appendChild(val);
-
-    const tl = document.createElement('div');
-    tl.className = 'card-corner tl';
-    tl.textContent = cardLabel(card.value);
-    inner.appendChild(tl);
-
-    const br = document.createElement('div');
-    br.className = 'card-corner br';
-    br.textContent = cardLabel(card.value);
-    inner.appendChild(br);
+    const wrap = document.createElement('div');
+    wrap.className = 'card-face-wrap';
+    wrap.appendChild(createCardFaceImg(card));
+    inner.appendChild(wrap);
 
     el.appendChild(inner);
 
@@ -362,18 +377,6 @@ function isPlayable(card, state) {
 
   const effectiveColor = state.discardTop.chosenColor || state.discardTop.color;
   return card.color === effectiveColor || card.value === state.discardTop.value;
-}
-
-function cardLabel(value) {
-  const map = {
-    'wild': '🌈',
-    'wild+4': '+4',
-    'newrule': '📜',
-    'reverse': '↺',
-    'skip': '⊘',
-    '+2': '+2',
-  };
-  return map[value] ?? value;
 }
 
 function cardWord(n) {
